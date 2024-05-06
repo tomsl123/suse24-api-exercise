@@ -18,69 +18,79 @@ Your task is to create a RESTful API server using Express.js. Briefly summarized
    - Use the predefined functions `read` and `write` from `src/tools/json-files.js` to read and write data to/from the JSON files.
    - Calling `write('filename.json')` with a filename that does not exist, will create a new file.
 
-4. **API Endpoints:**
+4. **Implement API endpoints**
+   - Implement API endpoint to authenticate, retrieve questions, start game runs 
+     and provide answer to questions for a game run
 
-   - **POST /authenticate**
-      - Accepts the username:password combination as a base64-encoded string in the Authorization header using the "Basic" scheme.
-      - On successful authentication, returns a JSON Web Token (JWT) which clients will use to access subsequent API endpoints.
-      - If authentication fails, returns a 401 Unauthorized status with a relevant message.
-      - Authorization: All users (authenticated or not) can access this endpoint.
+5. **Prove Endpoint work correctly with API tests**
+   - Use jest and supertest to write tests, proving your code works correctly 
 
-   - **GET /questions**
-     - Retrieve the properties `id`, `question`, and `options` of all questions stored in `data/questions.json`.
-     - Authorization: All users (authenticated or not) can access this endpoint.
+## API Endpoint Descriptions
 
-   - **GET /questions/{questionId}**
-     - Retrieve the properties `id`, `question`, and `options` for a specific question by its UUID.
-     - If the `questionId` does not exist, respond with a `404 Not Found` HTTP status code.
-     - Authorization: All users (authenticated or not) can access this endpoint.
-    
-  - **POST /game-runs**
-     - Create a new game run of the following scheme:
-        - ```js
-          {
-             id: "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID
-             userId: "569e9f4f-6e91-4ebb-87a5-8fc74d057f31", // The user's ID
-             createdAt: 1715003838, // Current timestamp
-             responses: {} // Empty hash object for now
-          }
-          ```
-     - Request body: empty.
-     - Returns the newly created `runId`.
-     - Authorization: Only authenticated users can access this endpoint.
+**POST /authenticate**
+  - Accepts the username and password via "HTTP Basic" authentication scheme.
+  - On successful authentication, returns a JSON Web Token (JWT), which clients will use to access API endpoints subsequently.
+  - If authentication fails, returns a 401 Unauthorized status with a relevant message.
+  - Authorization: All users (authenticated or not) can access this endpoint.
+
+**GET /questions**
+ - Retrieve the properties `id`, `question`, and `options` of all questions stored in `data/questions.json`.
+ - Authorization: All users (authenticated or not) can access this endpoint.
+
+**GET /questions/{questionId}**
+ - Retrieve the properties `id`, `question`, and `options` for a specific question by its UUID. Omit `correctAnswer`in response.
+ - If the `questionId` does not exist, respond with a `404 Not Found` HTTP status code.
+ - Authorization: All users (authenticated or not) can access this endpoint.
+
+**POST /game-runs**
+ - Create a new game run and store it with the following schema:
+     ```js
+      {
+         "id": "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID
+         "userId": "569e9f4f-6e91-4ebb-87a5-8fc74d057f31", // The user's ID
+         "createdAt": 1715003838, // Current timestamp
+         "responses": {} // Empty hash object for now
+      }
+      ```
+ - Request body: empty.
+ - Response body: the **ID** of the newly created run (`runId`).
+ - Authorization: Only authenticated users can access this endpoint.
    
-  - **POST /game-runs/{runId}/answers**
-     - Submit an answer to a specific question within a game run.
-     - Request body: JSON object containing the `questionId` and the submitted `answerIndex`.
-     - Updates the hash object in the specified run. Example after one submission:
-        - ```js
-          {
-             id: "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID
-             userId: "569e9f4f-6e91-4ebb-87a5-8fc74d057f31", // The user's ID
-             createdAt: 1715003838, // Current timestamp
-             responses: {
-               "544db309-40cf-4dd8-8662-c10ed3502a5d": 0 // <questionId>: <answerIndex>
-             }
+**PUT /game-runs/{runId}/responses**
+  - Submit a response to specific questions within a game run.
+  - Request body: JSON object containing the `questionId` and the submitted `answerIndex`, for example:
+     ```json
+      { "544db309-40cf-4dd8-8662-c10ed3502a5d" : "0"}
+      ```
+  - Updates the specified run in the `game-runs.json` file. Example after above submission:
+      ```js
+       {
+          "id": "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID of the run
+          "userName": "Iris", // The user name
+          "createdAt": 1715003838, // Timestamp
+          "responses": {
+            "544db309-40cf-4dd8-8662-c10ed3502a5d": 0 // <questionId>: <answerIndex>
           }
-          ```
-     - Authorization: Authenticated users can POST to this endpoint only if the referenced game run is owned by them.
+       }
+       ```
+  - Authorization: Authenticated users can POST to this endpoint only if the referenced game run is owned by them.
    
-  - **GET /game-runs/{runId}/results**
-     - Retrieve the results for a specific game run.
-     - Returns a JSON object containing the game run's `id`, `createdAt`, `userId` and a hash object with `questionId`'s as keys and `boolan`'s as values (for correct, wrong answer respectively). Example:
-        - ```js
-          {
-             id: "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID
-             userId: "569e9f4f-6e91-4ebb-87a5-8fc74d057f31", // The user's ID
-             createdAt: 1715003838, // Current timestamp
-             responses: {
-               "544db309-40cf-4dd8-8662-c10ed3502a5d": true, // Answered correctly
-               "0c09e601-3f13-4d46-8895-6a03fff9d669": true // Answered correctly
-               "e1963847-7a09-4a6f-9501-817a6aad0648": false // Answered incorrectly
-             }
+**GET /game-runs/{runId}/results**
+  - Retrieve the results for a specific game run.
+  - Returns a JSON object containing the game run's `id`, `createdAt`, `userId` and a hash object with `questionId`'s as keys and `boolan`'s as values (for correct, wrong answer respectively). Example:
+      ```js
+       {
+          "id": "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID
+          "userName": "Iris", // The user's ID
+          "createdAt": 1715003838, // Current timestamp
+          "responses": {
+            "544db309-40cf-4dd8-8662-c10ed3502a5d": true, // Answered correctly
+            "0c09e601-3f13-4d46-8895-6a03fff9d669": true // Answered correctly
+            "e1963847-7a09-4a6f-9501-817a6aad0648": false // Answered incorrectly
           }
-          ```
-     - Authorization: Authenticated users can GET this endpoint only if the referenced game run is owned by them.
+       }
+       ```
+  - Authorization: Authenticated users can GET this endpoint only if the referenced game run is owned by them.
 
 ## Additional Guidelines:
 
@@ -136,3 +146,12 @@ Usage example for writing:
     const questions = read('attempts');
     write('attempts', [...attempts, newAttempt])
 
+# References
+
+1. [ExpressJS](https://expressjs.com/)
+2. [Joi](https://joi.dev/api/?v=17.13.0)
+2. [Passport Http](https://www.passportjs.org/packages/passport-http/)
+3. [Passport JWT](https://www.passportjs.org/packages/passport-jwt/)
+4. [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+5. [Jest Test Runner](https://jestjs.io/)
+6. [Supertest](https://github.com/ladjs/supertest)
