@@ -47,7 +47,7 @@ Your task is to create a RESTful API server using Express.js. Briefly summarized
      ```js
       {
          "id": "3d13ee89-f02b-4783-bb0e-c2d441a62b4b", // UUID
-         "userId": "569e9f4f-6e91-4ebb-87a5-8fc74d057f31", // The user's ID
+         "userName": "Iris", // The user's ID
          "createdAt": 1715003838, // Current timestamp
          "responses": {} // Empty hash object for now
       }
@@ -110,7 +110,7 @@ The questions are stored as array in the file `data/questions.json` and have the
 |---------------|----------|--------------------------------------------|
 | id            | uuid     | Unique identifier for a question           |
 | question      | string   | Actual question text                       |
-| answers       | string[] | List of possible answer options            |
+| options       | string[] | List of possible answer options            |
 | correctAnswer | number   | Index of the correct answer in above array |
 
 ## Users
