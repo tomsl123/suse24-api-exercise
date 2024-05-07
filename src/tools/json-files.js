@@ -13,6 +13,13 @@ function read(fileName) {
     return JSON.parse(fs.readFileSync(filePath, {encoding:'utf8'}));
 }
 
+function readQuestionsWithoutAnswers() {
+    return read('questions').map((question) => {
+        question['correctAnswer'] = undefined;
+        return question;
+    });
+}
+
 /**
  * Write a javascript data object to a JSON file.
  * @param fileName Plain name of the file (no path). File extension not required. For example: 'users'
@@ -34,4 +41,4 @@ function getDataFilePath(fileName){
     return filePath;
 }
 
-export {read, write};
+export {read, write, readQuestionsWithoutAnswers};
